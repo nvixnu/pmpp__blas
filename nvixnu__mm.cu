@@ -1,51 +1,52 @@
-#include "nvixnu__mm.h"
+#include "nvixnu__gemm.h"
 
 __global__
-void nvixnu__square_mm(float *A, float *B, float * C, int n){
+void nvixnu__gemm(float *A, float *B, float * C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if((col < n) && (row < n)){
+    if((col < K) && (row < I)){
         float dot_prod = 0;
-        for(int k = 0; k < n; k++){
-            dot_prod += A[row*n+k]*B[k*n+col];
+        for(int idx = 0; idx < J; idx++){
+            dot_prod += A[row*J+idx]*B[idx*K+col];
         }
-        C[row*n+col] += dot_prod;
+        C[row*K+col] += dot_prod;
     }
 }
 
+
+
 __global__
-void vixnu__tiled_square_mm(float *A, float *B, float *C, int n){
+void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, const int J, const int K, const int TILE_WIDTH){
   // Dinamically allocates the shared memory as a 1D array
   extern __shared__ float shared[];
 
   // Save the threads and blocks idx into registers
-  int tile_size = blockDim.x;
   int bx = blockIdx.x, by = blockIdx.y, tx = threadIdx.x, ty = threadIdx.y;
 
   // Calculates the row and col indexes
-  int row = by * tile_size + ty;
-  int col = bx * tile_size + tx;
+  int row = by * TILE_WIDTH + ty;
+  int col = bx * TILE_WIDTH + tx;
 
   // Element value accumulator
   float dot_prod = 0.0;
 
   // Strip Mining outter loop. On each phase, a tile of data is fetched and stored in shared memory
-  for(int ph = 0; ph < ceil(n/(float)tile_size); ph++){
+  for(int ph = 0; ph < ceil(J/(float)TILE_WIDTH); ph++){
       // Check if the tile is inside the domain 
-      if((row < n) && (ph*tile_size + tx) < n){
-          shared[ty*tile_size + tx] = A[row*n + ph*tile_size + tx];
+      if((row < I) && (ph*TILE_WIDTH + tx) < J){
+          shared[ty*TILE_WIDTH + tx] = A[row*J + ph*TILE_WIDTH + tx];
       }
-      if((col < n) && (ph*tile_size + ty) < n){
-          shared[tile_size*tile_size + ty*tile_size + tx] = B[(ph*tile_size + ty)*n + col];
+      if((col < K) && (ph*TILE_WIDTH + ty) < J){
+          shared[TILE_WIDTH*TILE_WIDTH + ty*TILE_WIDTH + tx] = B[(ph*TILE_WIDTH + ty)*K + col];
       }  
 
       // Wait for all threads in the block to complete the data loading
       __syncthreads();
 
       // Performs the dot product with the data loaded on this phase
-      for(int k = 0; k < tile_size; k++){
-          dot_prod += shared[ty*tile_size + k]*shared[tile_size*tile_size + k*tile_size + tx];
+      for(int idx = 0; idx < TILE_WIDTH; idx++){
+          dot_prod += shared[ty*TILE_WIDTH + idx]*shared[TILE_WIDTH*TILE_WIDTH + idx*TILE_WIDTH + tx];
       } 
 
       // Wait for all threads in the block to complete the calculation
@@ -53,7 +54,19 @@ void vixnu__tiled_square_mm(float *A, float *B, float *C, int n){
   }
 
   // Saves the dot product to C[row][col] position
-  if((row < n) && (col < n)){
-      C[row*n + col] += dot_prod;
+  if((row < I) && (col < K)){
+      C[row*K + col] += dot_prod;
   }
+}
+
+void nvixnu__h_gemm(float *A, float *B, float *C, const int I,const int J,const int K){
+  for(int i = 0; i < I; i++){        
+    for(int k = 0; k < K; k++){
+      float dot_prod = 0;
+        for(int idx = 0; idx < J; idx++){
+            dot_prod += A[i*J+idx]*B[idx*K+k];
+        }   
+        C[i*K+k] += dot_prod;     
+      }          
+  }    
 }
