@@ -1,7 +1,7 @@
 #include "nvixnu__gemm.h"
 
 __global__
-void nvixnu__gemm_square(float *A, float *B, float * C, int n){
+void nvixnu__square_mm(float *A, float *B, float * C, int n){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -15,11 +15,12 @@ void nvixnu__gemm_square(float *A, float *B, float * C, int n){
 }
 
 __global__
-void vixnu__tiled_gemm_square(float *A, float *B, float *C, int n, int tile_size){
+void vixnu__tiled_square_mm(float *A, float *B, float *C, int n){
   // Dinamically allocates the shared memory as a 1D array
   extern __shared__ float shared[];
 
   // Save the threads and blocks idx into registers
+  int tile_size = blockDim.x;
   int bx = blockIdx.x, by = blockIdx.y, tx = threadIdx.x, ty = threadIdx.y;
 
   // Calculates the row and col indexes
@@ -55,5 +56,4 @@ void vixnu__tiled_gemm_square(float *A, float *B, float *C, int n, int tile_size
   if((row < n) && (col < n)){
       C[row*n + col] += dot_prod;
   }
-
 }
