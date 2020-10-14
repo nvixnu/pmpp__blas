@@ -1,4 +1,4 @@
-#include "nvixnu__gemm.h"
+#include "nvixnu__mm.h"
 
 __global__
 void nvixnu__square_mm(float *A, float *B, float * C, int n){
