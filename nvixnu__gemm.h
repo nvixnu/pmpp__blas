@@ -10,7 +10,7 @@
 * @param J The number of columns of the matrix A (The number of rows of the matrix B)
 * @param K The number of columns of the matrix B
 */
-__global__ void nvixnu__gemm(float *A, float *B, float * C, const int I, const int J, const int K);
+__global__ void nvixnu__gemm(double *A, double *B, double * C, const int I, const int J, const int K);
 
 /**
 * Kernel that performs a tiled GEMM operation
@@ -22,7 +22,7 @@ __global__ void nvixnu__gemm(float *A, float *B, float * C, const int I, const i
 * @param K The number of columns of the matrix B
 * @param TILE_WIDTH The tile width for square tiles
 */
-__global__ void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, const int J, const int K, const int TILE_WIDTH);
+__global__ void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH);
 
 /**
 * Host function that performs a naive GEMM operation
@@ -33,6 +33,6 @@ __global__ void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, co
 * @param J The number of columns of the matrix A (The number of rows of the matrix B)
 * @param K The number of columns of the matrix B
 */
-void nvixnu__h_gemm(float *A, float *B, float *C, const int I,const int J,const int K);
+void nvixnu__h_gemm(double *A, double *B, double *C, const int I,const int J,const int K);
 
 #endif /* NVIXNU__GEMM_H_ */

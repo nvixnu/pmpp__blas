@@ -1,7 +1,7 @@
 #include "nvixnu__gemm.h"
 
 __global__
-void nvixnu__gemm(float *A, float *B, float * C, const int I, const int J, const int K){
+void nvixnu__gemm(double *A, double *B, double * C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -17,9 +17,9 @@ void nvixnu__gemm(float *A, float *B, float * C, const int I, const int J, const
 
 
 __global__
-void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, const int J, const int K, const int TILE_WIDTH){
+void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH){
   // Dinamically allocates the shared memory as a 1D array
-  extern __shared__ float shared[];
+  extern __shared__ double shared[];
 
   // Save the threads and blocks idx into registers
   int bx = blockIdx.x, by = blockIdx.y, tx = threadIdx.x, ty = threadIdx.y;
@@ -29,10 +29,10 @@ void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, const int J, 
   int col = bx * TILE_WIDTH + tx;
 
   // Element value accumulator
-  float dot_prod = 0.0;
+  double dot_prod = 0.0;
 
   // Strip Mining outter loop. On each phase, a tile of data is fetched and stored in shared memory
-  for(int ph = 0; ph < ceil(J/(float)TILE_WIDTH); ph++){
+  for(int ph = 0; ph < ceil(J/(double)TILE_WIDTH); ph++){
       // Check if the tile is inside the domain 
       if((row < I) && (ph*TILE_WIDTH + tx) < J){
           shared[ty*TILE_WIDTH + tx] = A[row*J + ph*TILE_WIDTH + tx];
@@ -59,10 +59,10 @@ void nvixnu__tiled_gemm(float *A, float *B, float *C, const int I, const int J, 
   }
 }
 
-void nvixnu__h_gemm(float *A, float *B, float *C, const int I,const int J,const int K){
+void nvixnu__h_gemm(double *A, double *B, double *C, const int I,const int J,const int K){
   for(int i = 0; i < I; i++){        
     for(int k = 0; k < K; k++){
-      float dot_prod = 0;
+      double dot_prod = 0;
         for(int idx = 0; idx < J; idx++){
             dot_prod += A[i*J+idx]*B[idx*K+k];
         }   
