@@ -1,12 +1,12 @@
 #include "nvixnu__gemm.h"
 
 __global__
-void nvixnu__gemm(double *A, double *B, double * C, const int I, const int J, const int K){
+void nvixnu__gemm(double *A, double *B, double *C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if((col < K) && (row < I)){
-        float dot_prod = 0;
+        double dot_prod = 0;
         for(int idx = 0; idx < J; idx++){
             dot_prod += A[row*J+idx]*B[idx*K+col];
         }
