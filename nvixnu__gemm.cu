@@ -1,7 +1,7 @@
 #include "nvixnu__gemm.h"
 
 __global__
-void nvixnu__gemm(double *A, double *B, double *C, const int I, const int J, const int K){
+void nvixnu__gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -17,9 +17,15 @@ void nvixnu__gemm(double *A, double *B, double *C, const int I, const int J, con
 
 
 __global__
-void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH){
+void nvixnu__tiled_gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH){
   // Dinamically allocates the shared memory as a 1D array
   extern __shared__ double shared[];
+
+  // Pointers to the shared arrays sections
+  double *A_shared, *B_shared;
+
+  A_shared = shared;
+  B_shared = shared + TILE_WIDTH*TILE_WIDTH;
 
   // Save the threads and blocks idx into registers
   int bx = blockIdx.x, by = blockIdx.y, tx = threadIdx.x, ty = threadIdx.y;
@@ -35,10 +41,15 @@ void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int 
   for(int ph = 0; ph < ceil(J/(double)TILE_WIDTH); ph++){
       // Check if the tile is inside the domain 
       if((row < I) && (ph*TILE_WIDTH + tx) < J){
-          shared[ty*TILE_WIDTH + tx] = A[row*J + ph*TILE_WIDTH + tx];
+    	  A_shared[ty*TILE_WIDTH + tx] = A[row*J + ph*TILE_WIDTH + tx];
+      }else{
+    	  A_shared[ty*TILE_WIDTH + tx] = 0.0;
       }
+
       if((col < K) && (ph*TILE_WIDTH + ty) < J){
-          shared[TILE_WIDTH*TILE_WIDTH + ty*TILE_WIDTH + tx] = B[(ph*TILE_WIDTH + ty)*K + col];
+    	  B_shared[ty*TILE_WIDTH + tx] = B[(ph*TILE_WIDTH + ty)*K + col];
+      }else{
+    	  B_shared[ty*TILE_WIDTH + tx] = 0.0;
       }  
 
       // Wait for all threads in the block to complete the data loading
@@ -46,7 +57,7 @@ void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int 
 
       // Performs the dot product with the data loaded on this phase
       for(int idx = 0; idx < TILE_WIDTH; idx++){
-          dot_prod += shared[ty*TILE_WIDTH + idx]*shared[TILE_WIDTH*TILE_WIDTH + idx*TILE_WIDTH + tx];
+          dot_prod += A_shared[ty*TILE_WIDTH + idx]*B_shared[idx*TILE_WIDTH + tx];
       } 
 
       // Wait for all threads in the block to complete the calculation
@@ -59,7 +70,7 @@ void nvixnu__tiled_gemm(double *A, double *B, double *C, const int I, const int 
   }
 }
 
-void nvixnu__h_gemm(double *A, double *B, double *C, const int I,const int J,const int K){
+void nvixnu__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K){
   for(int i = 0; i < I; i++){        
     for(int k = 0; k < K; k++){
       double dot_prod = 0;
