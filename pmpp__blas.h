@@ -1,5 +1,5 @@
-#ifndef PMPP__GEMM_H_
-#define PMPP__GEMM_H_
+#ifndef PMPP__BLAS_H_
+#define PMPP__BLAS_H_
 
 /**
 * Kernel that performs the axpy BLAS operation
@@ -54,4 +54,4 @@ __global__ void pmpp__tiled_gemm_kernel(double *A, double *B, double *C, const i
 */
 void pmpp__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K);
 
-#endif /* PMPP__GEMM_H_ */
+#endif /* PMPP__BLAS_H_ */
