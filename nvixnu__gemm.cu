@@ -1,6 +1,21 @@
 #include "nvixnu__gemm.h"
 
 __global__
+void nvixnu__axpy_kernel(double a, double *x, double *y, int n){
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  if (i < n){
+      y[i] = a*x[i] +y[i];
+  }
+}
+
+void nvixnu__axpy_host(double a, double *x, double *y, int n){
+  int i;
+  for(i = 0; i < n; i++){
+      y[i] = a*x[i] + y[i];
+  }
+}
+
+__global__
 void nvixnu__gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
