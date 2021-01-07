@@ -1,14 +1,14 @@
-#include "nvixnu__gemm.h"
+#include "pmpp__blas.h"
 
 __global__
-void nvixnu__axpy_kernel(double a, double *x, double *y, int n){
+void pmpp__axpy_kernel(double a, double *x, double *y, int n){
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   if (i < n){
       y[i] = a*x[i] +y[i];
   }
 }
 
-void nvixnu__axpy_host(double a, double *x, double *y, int n){
+void pmpp__axpy_host(double a, double *x, double *y, int n){
   int i;
   for(i = 0; i < n; i++){
       y[i] = a*x[i] + y[i];
@@ -16,7 +16,7 @@ void nvixnu__axpy_host(double a, double *x, double *y, int n){
 }
 
 __global__
-void nvixnu__gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K){
+void pmpp__gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K){
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -32,7 +32,7 @@ void nvixnu__gemm_kernel(double *A, double *B, double *C, const int I, const int
 
 
 __global__
-void nvixnu__tiled_gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH){
+void pmpp__tiled_gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH){
   // Dinamically allocates the shared memory as a 1D array
   extern __shared__ double shared[];
 
@@ -85,7 +85,7 @@ void nvixnu__tiled_gemm_kernel(double *A, double *B, double *C, const int I, con
   }
 }
 
-void nvixnu__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K){
+void pmpp__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K){
   for(int i = 0; i < I; i++){        
     for(int k = 0; k < K; k++){
       double dot_prod = 0;

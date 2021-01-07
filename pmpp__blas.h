@@ -1,5 +1,5 @@
-#ifndef NVIXNU__GEMM_H_
-#define NVIXNU__GEMM_H_
+#ifndef PMPP__GEMM_H_
+#define PMPP__GEMM_H_
 
 /**
 * Kernel that performs the axpy BLAS operation
@@ -8,7 +8,7 @@
 * @param y The array "y"
 * @param n The lenght of the arrays
 */
-__global__ void nvixnu__axpy_kernel(double a, double *x, double *y, int n);
+__global__ void pmpp__axpy_kernel(double a, double *x, double *y, int n);
 
 /**
 * The host function that performs the axpy BLAS operation
@@ -17,7 +17,7 @@ __global__ void nvixnu__axpy_kernel(double a, double *x, double *y, int n);
 * @param y The array "y"
 * @param n The lenght of the arrays
 */
-void nvixnu__axpy_host(double a, double *x, double *y, int n);
+void pmpp__axpy_host(double a, double *x, double *y, int n);
 
 
 /**
@@ -29,7 +29,7 @@ void nvixnu__axpy_host(double a, double *x, double *y, int n);
 * @param J The number of columns of the matrix A (The number of rows of the matrix B)
 * @param K The number of columns of the matrix B
 */
-__global__ void nvixnu__gemm_kernel(double *A, double *B, double * C, const int I, const int J, const int K);
+__global__ void pmpp__gemm_kernel(double *A, double *B, double * C, const int I, const int J, const int K);
 
 /**
 * Kernel that performs a tiled GEMM operation
@@ -41,7 +41,7 @@ __global__ void nvixnu__gemm_kernel(double *A, double *B, double * C, const int 
 * @param K The number of columns of the matrix B
 * @param TILE_WIDTH The tile width for square tiles
 */
-__global__ void nvixnu__tiled_gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH);
+__global__ void pmpp__tiled_gemm_kernel(double *A, double *B, double *C, const int I, const int J, const int K, const int TILE_WIDTH);
 
 /**
 * Host function that performs a naive GEMM operation
@@ -52,6 +52,6 @@ __global__ void nvixnu__tiled_gemm_kernel(double *A, double *B, double *C, const
 * @param J The number of columns of the matrix A (The number of rows of the matrix B)
 * @param K The number of columns of the matrix B
 */
-void nvixnu__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K);
+void pmpp__gemm_host(double *A, double *B, double *C, const int I,const int J,const int K);
 
-#endif /* NVIXNU__GEMM_H_ */
+#endif /* PMPP__GEMM_H_ */
