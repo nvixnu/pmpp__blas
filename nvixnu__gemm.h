@@ -2,6 +2,25 @@
 #define NVIXNU__GEMM_H_
 
 /**
+* Kernel that performs the axpy BLAS operation
+* @param a The constant "a"
+* @param x The array "x"
+* @param y The array "y"
+* @param n The lenght of the arrays
+*/
+__global__ void nvixnu__axpy_kernel(double a, double *x, double *y, int n);
+
+/**
+* The host function that performs the axpy BLAS operation
+* @param a The constant "a"
+* @param x The array "x"
+* @param y The array "y"
+* @param n The lenght of the arrays
+*/
+void nvixnu__axpy_host(double a, double *x, double *y, int n);
+
+
+/**
 * Kernel that performs a naive (without tiling) GEMM operation
 * @param A The matrix A
 * @param B The matrix B
